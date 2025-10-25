@@ -77,8 +77,8 @@ class S4ZBot(Bot):
             i, j = queue.pop(0)
 
             # Если уже прошли эту клетку, то пропуск
-            if (i, j) in processed:
-                continue
+            #if (i, j) in processed:
+            #    continue
 
             # Обрабатываем взрыв, если значение дошло до h
             if board[i, j] >= self._count_available_spaces(i, j):
