@@ -153,13 +153,13 @@ class Game:
         queue = [(start_i, start_j)]
         processed = set()
 
-        while queue:
+        while queue and not self.game_over:
             i, j = queue.pop(0)
 
             # Если уже прошли эту клетку, то пропуск
             #if (i, j) in processed:
             #    continue
-
+            #prev_owner = owners[i, j]
             # Обрабатываем взрыв, если значение дошло до h
             if self.board[i, j] >= self._count_available_spaces(i, j):
                 # Запоминаем, что прошли
@@ -181,6 +181,7 @@ class Game:
                     # Если сосед теперь имеет значение h, добавляем в очередь
                     if self.board[ny, nx] >= self._count_available_spaces(ny, nx):
                         queue.append((ny, nx))
+            self._check_win_condition()
 
     def _get_neighbors(self, i: int, j: int) -> List[Tuple[int, int]]:
         """
@@ -210,7 +211,7 @@ class Game:
                     active_players.add(self.owners[i, j])
 
         # Если остался только один игрок - он победил
-        if len(active_players) == 1 and self.current_player in active_players:
+        if (len(active_players) == 1 and self.current_player in active_players) and len(self.move_history) > 1:
             self.game_over = True
             self.winner = self.current_player
         # Если у текущего игрока не осталось клеток - игра окончена

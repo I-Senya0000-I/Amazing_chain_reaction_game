@@ -34,7 +34,7 @@ if __name__ == "__main__":
     bots = [
         #RandomBot(1),
         #GreedyBot(2),
-        User(1),
+        S4ZBot(1, depth=7, variant=0),
         S4ZBot(2, depth=5, variant=0),
         
     ]
@@ -43,7 +43,7 @@ if __name__ == "__main__":
     runner = GameRunner(
         n=5, m=5,
         players=bots,
-        players_name=['S4zBot', 'UserBot'][::-1]
+        players_name=['S4zBot1', 'S4zBot2']
     )
     winner = runner.run_game(verbose=True)
     print(winner)

@@ -1,5 +1,6 @@
 from game_base import Bot
 import numpy as np
+import sys
 """
 def get_game_state(self) -> dict:
         "Получить текущее состояние игры (для ботов)"
@@ -17,7 +18,9 @@ def get_game_state(self) -> dict:
             'valid_moves': self.get_valid_moves()
         }
 """
-
+def clearLine():
+    sys.stdout.write('\x1b[1A')
+    sys.stdout.write('\x1b[2K')
 
 class S4ZBot(Bot):
 
@@ -26,6 +29,7 @@ class S4ZBot(Bot):
         self.variant = variant
         self.depth = depth
         self.color = my_color
+        print(self.color)
         
         
 
@@ -33,13 +37,15 @@ class S4ZBot(Bot):
         self.n = game_state['n']
         self.m = game_state['m']
         self.player_cnt = game_state['players_count']
+        #print(game_state)
         for i in range(self.n):
             for j in range(self.m):
                 if np.sum(game_state['owners'] == self.color) == 0:
                     # First Move
                     return list(map(int, input().split()))
                 else:
-                    res = self.deep_analyzis(game_state['board'].copy(), game_state['owners'], self.color, self.depth, self.variant)
+                    res = self.deep_analyzis(game_state['board'].copy(), game_state['owners'].copy(), self.color, self.depth, self.variant)
+                    #print(res)
                     return res[0], res[1]
     
 
@@ -64,6 +70,15 @@ class S4ZBot(Bot):
         return neighbors
 
 
+    def _check_game_end(self, board, owners):
+        active_players = set()
+        for i in range(self.n):
+            for j in range(self.m):
+                if owners[i, j] != 0:
+                    active_players.add(owners[i, j])
+        return len(active_players) == 1
+
+
     def _process_chain_reaction(self, board, owners, start_i: int, start_j: int):
         """
         Обработать цепную реакцию взрывов
@@ -73,17 +88,17 @@ class S4ZBot(Bot):
         queue = [(start_i, start_j)]
         processed = set()
 
-        while queue:
+        while queue and not self._check_game_end(board, owners):
             i, j = queue.pop(0)
 
             # Если уже прошли эту клетку, то пропуск
             #if (i, j) in processed:
             #    continue
-
+            prev_owner = owners[i, j]
             # Обрабатываем взрыв, если значение дошло до h
             if board[i, j] >= self._count_available_spaces(i, j):
                 # Запоминаем, что прошли
-                processed.add((i, j))
+                #processed.add((i, j))
 
                 # Обнуляем клетку
                 board[i, j] -= self._count_available_spaces(i, j)
@@ -97,13 +112,24 @@ class S4ZBot(Bot):
                 # +1 ко всем соседям и изменяем владельца
                 for ny, nx in neighbors:
                     board[ny, nx] += 1
-                    owners[ny, nx] = owners[i, j]
+                    owners[ny, nx] = prev_owner
 
                     # Если сосед теперь имеет значение h, добавляем в очередь
                     if board[ny, nx] >= self._count_available_spaces(ny, nx):
                         queue.append((ny, nx))
+            
+
         return board, owners
 
+    def print_board(self, board, owners, pretty=True):
+        
+        if pretty:
+            for i in range(self.n):
+                for j in range(self.m):
+                    print(f"\033[3{owners[i][j]}m{board[i][j]}", end=' ')
+                print("\n", end='')
+           
+            return True
 
     def deep_analyzis(self, board, owners, my_color, depth, variant=0):
 
@@ -115,48 +141,51 @@ class S4ZBot(Bot):
 
             for i in range(self.n):
                 for j in range(self.m):
-                    if owners[i][j] == my_color:
+                    if owners[i, j] == my_color:
                         my_cells += 1
-                        my_summary += board[i][j]
+                        my_summary += board[i, j]
                     else:
                         opponent_cells += 1
-                        opponent_summary += 1
+                        opponent_summary += board[i, j]
 
             if (my_cells == 0):
                 rate = -1000
+                #self.print_board(board, owners)
                 return [-1, -1, -rate]
             elif opponent_cells == 0:
                 rate = 1000
+                #self.print_board(board, owners)
                 return [-1, -1, -rate]
             else:
-                rate = (my_cells-2*opponent_cells) + float(my_summary)/opponent_summary
+                rate = float((my_cells-2*opponent_cells) + my_summary/opponent_summary)
             if depth == 0:
                 return [-1, -1, -rate]
 
 
-        possible_moves = []
-
+        possible_moves = [] 
         for i in range(self.n):
             for j in range(self.m):
-                if owners[i][j] == my_color:
+                if owners[i, j] == my_color:
                     possible_moves.append((i, j))
         
         moves_results = []
         for i, j in possible_moves:
             newboard = board.copy()
             newowners = owners.copy()
-            newboard[i][j] += 1
-            newboard, newowners = self._process_chain_reaction(newboard, newowners, i, j)
-            res = self.deep_analyzis(newboard, newowners, (my_color+1) % self.player_cnt, depth-1, variant)
+            newboard[i, j] += 1
+            newboard, newowners = self._process_chain_reaction(newboard.copy(), newowners.copy(), i, j)
+            res = self.deep_analyzis(newboard.copy(), newowners.copy(), (my_color) % self.player_cnt + 1, depth-1, variant)
             moves_results.append([i, j, res[2]])
         
 
-        moves_results.sort(key=lambda x: x[2])
+        moves_results.sort(key=lambda x: x[2], reverse=False)
 
         if not moves_results: return [-1, -1, 1000]
 
 
         moves_results[-1][2] = -moves_results[-1][2]
+        #print(moves_results[-1], depth,  my_color)
+        #clearLine()
         return moves_results[-1]
 
 
