@@ -1,6 +1,7 @@
 from game_base import Bot
 import numpy as np
 import sys
+import random
 """
 def get_game_state(self) -> dict:
         "Получить текущее состояние игры (для ботов)"
@@ -42,12 +43,52 @@ class S4ZBot(Bot):
             for j in range(self.m):
                 if np.sum(game_state['owners'] == self.color) == 0:
                     # First Move
-                    return list(map(int, input().split()))
+                    #return list(map(int, input().split()))
+                    nx, ny = -1, -1
+                    for i in range(self.n):
+                        for j in range(self.m):
+                            if game_state["owners"][i, j] != 0:
+                                nx, ny = i, j
+                    if nx != -1:
+                        available = self._get_diagonal_neighbors(nx, ny)
+                        return random.choice(available)
+                    else:
+                        return random.randint(1, self.n-2), random.randint(1, self.m-2)
                 else:
                     res = self.deep_analyzis(game_state['board'].copy(), game_state['owners'].copy(), self.color, self.depth, self.variant)
-                    #print(res)
                     return res[0], res[1]
     
+
+    def _get_diagonal_neighbors(self, i: int, j: int):
+        """
+        Возвращает соседей клетки
+        (вверх, вниз, влево, вправо) - бля прямоугольного поля
+        """
+        neighbors = []
+        directions = [(-1, -1), (-1, 1), (1, -1), (1, 1)]
+
+        for di, dj in directions:
+            ni, nj = i + di, j + dj
+            if 0 <= ni < self.n and 0 <= nj < self.m:
+                neighbors.append((ni, nj))
+
+        return neighbors
+
+
+    def _get_neighbors(self, i: int, j: int):
+        """
+        Возвращает соседей клетки
+        (вверх, вниз, влево, вправо) - бля прямоугольного поля
+        """
+        neighbors = []
+        directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+        for di, dj in directions:
+            ni, nj = i + di, j + dj
+            if 0 <= ni < self.n and 0 <= nj < self.m:
+                neighbors.append((ni, nj))
+
+        return neighbors
 
 
     def _count_available_spaces(self, i: int, j: int) -> int:
@@ -133,7 +174,7 @@ class S4ZBot(Bot):
 
     def deep_analyzis(self, board, owners, my_color, depth, variant=0):
 
-        if variant == 0:
+        if variant <= 1:
             my_cells = 0
             opponent_cells = 0
             my_summary = 0
@@ -157,7 +198,10 @@ class S4ZBot(Bot):
                 #self.print_board(board, owners)
                 return [-1, -1, -rate]
             else:
-                rate = float((my_cells-2*opponent_cells) + my_summary/opponent_summary)
+                if variant == 0:
+                    rate = float((my_cells-2*opponent_cells) + my_summary/opponent_summary)
+                else:
+                    rate = float((my_cells-1.5*opponent_cells)) #+ my_summary/opponent_summary)
             if depth == 0:
                 return [-1, -1, -rate]
 

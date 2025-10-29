@@ -29,13 +29,14 @@ owners - такого же размера массив, в которм отме
 
 if __name__ == "__main__":
     # боты(базовые) или игроки
-    # Обычного игрока я не создал
-    # Визуальную хернюдля взаимодейсвтия пока не доделал
+
     bots = [
-        #RandomBot(1),
+        RandomBot(1),
         #GreedyBot(2),
-        S4ZBot(1, depth=7, variant=0),
-        S4ZBot(2, depth=5, variant=0),
+        #S4ZBot(1, depth=6, variant=0),
+        S4ZBot(2, depth=4, variant=0),
+        #User(2),
+        
         
     ]
 
@@ -43,20 +44,21 @@ if __name__ == "__main__":
     runner = GameRunner(
         n=5, m=5,
         players=bots,
-        players_name=['S4zBot1', 'S4zBot2']
+        players_name=['RandomBot', 'S4zBot'][::1]
     )
     winner = runner.run_game(verbose=True)
     print(winner)
 
-    # Статистика по множеству игр
+     #Статистика по множеству игр
 
-    # wins = [0] * len(bots)
-    # for _ in range(100):
-    #     runner = GameRunner(n=5, m=5, h=4, players=bots)
-    #     winner = runner.run_game(verbose=False)
-    #     wins[winner - 1] += 1
+    wins = [0] * len(bots)
+    for _ in range(2000):
+        runner = GameRunner(n=5, m=5, players=bots)
+        winner = runner.run_game(verbose=False)
+        #print(winner)
+        wins[winner - 1] += 1
 
-    # print("Результаты 100 игр:")
-    # for i, win_count in enumerate(wins):
-    #     bot_type = type(bots[i]).__name__
-    #     print(f"Игрок {i+1} ({bot_type}): {win_count} побед")
+    print("Результаты 2000 игр:")
+    for i, win_count in enumerate(wins):
+        bot_type = type(bots[i]).__name__
+        print(f"Игрок {i+1} ({bot_type}): {win_count} побед")
