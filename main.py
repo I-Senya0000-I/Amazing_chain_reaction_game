@@ -31,11 +31,12 @@ if __name__ == "__main__":
     # боты(базовые) или игроки
 
     bots = [
-        RandomBot(1),
+        #RandomBot(1),
         #GreedyBot(2),
         #S4ZBot(1, depth=6, variant=0),
+        User(1),
         S4ZBot(2, depth=4, variant=0),
-        #User(2),
+        
         
         
     ]
@@ -44,21 +45,21 @@ if __name__ == "__main__":
     runner = GameRunner(
         n=5, m=5,
         players=bots,
-        players_name=['RandomBot', 'S4zBot'][::1]
+        players_name=['User', 'S4ZBot']
     )
     winner = runner.run_game(verbose=True)
     print(winner)
 
      #Статистика по множеству игр
 
-    wins = [0] * len(bots)
-    for _ in range(2000):
-        runner = GameRunner(n=5, m=5, players=bots)
-        winner = runner.run_game(verbose=False)
+    #wins = [0] * len(bots)
+    #for _ in range(2000):
+    #    runner = GameRunner(n=5, m=5, players=bots)
+    #    winner = runner.run_game(verbose=False)
         #print(winner)
-        wins[winner - 1] += 1
+    #    wins[winner - 1] += 1
 
-    print("Результаты 2000 игр:")
-    for i, win_count in enumerate(wins):
-        bot_type = type(bots[i]).__name__
-        print(f"Игрок {i+1} ({bot_type}): {win_count} побед")
+    #print("Результаты 2000 игр:")
+    #for i, win_count in enumerate(wins):
+    #    bot_type = type(bots[i]).__name__
+    #    print(f"Игрок {i+1} ({bot_type}): {win_count} побед")

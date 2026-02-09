@@ -39,6 +39,10 @@ class S4ZBot(Bot):
         self.m = game_state['m']
         self.player_cnt = game_state['players_count']
         #print(game_state)
+        """
+        First move check
+        """
+        
         for i in range(self.n):
             for j in range(self.m):
                 if np.sum(game_state['owners'] == self.color) == 0:
@@ -51,7 +55,23 @@ class S4ZBot(Bot):
                                 nx, ny = i, j
                     if nx != -1:
                         available = self._get_diagonal_neighbors(nx, ny)
-                        return random.choice(available)
+                        # analyze every position
+                        score = []
+                        cur = 0
+                        for i, j in available:
+                            if i != -1 and j != -1:
+                                if cur == 1:
+                                    score.append(i*(self.m-j-1))
+                                elif cur == 3:
+                                    score.append((self.n-i-1)*(self.m-j-1))
+                                elif cur == 2:
+                                    score.append((self.n-i-1)*j)
+                                else:
+                                    score.append(i*j)
+                            else:
+                                score.append(-100)
+                        print(score)
+                        return available[score.index(max(score))]
                     else:
                         return random.randint(1, self.n-2), random.randint(1, self.m-2)
                 else:
@@ -62,7 +82,7 @@ class S4ZBot(Bot):
     def _get_diagonal_neighbors(self, i: int, j: int):
         """
         Возвращает соседей клетки
-        (вверх, вниз, влево, вправо) - бля прямоугольного поля
+        (u-l, u-r, b-l, b-r) - бля прямоугольного поля
         """
         neighbors = []
         directions = [(-1, -1), (-1, 1), (1, -1), (1, 1)]
@@ -71,6 +91,8 @@ class S4ZBot(Bot):
             ni, nj = i + di, j + dj
             if 0 <= ni < self.n and 0 <= nj < self.m:
                 neighbors.append((ni, nj))
+            else:
+                neighbors.append((-1, -1))
 
         return neighbors
 
